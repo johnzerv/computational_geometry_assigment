@@ -57,6 +57,7 @@ def generate_random_2D_points(N):
 
     return random_2D_points
 
+# Method to check if the second of the three arguments is internal point of the line segment <xz>
 def is_internal_point(x, y, z):
     # Check if y is between x and z on the x-coordinate
     x_between = min(x.x, z.x) <= y.x <= max(x.x, z.x)
@@ -169,14 +170,13 @@ if __name__ == "__main__":
     hull = gift_wrapping(points)
 
 
-
     # Plotting
     x_points = [point.get_x() for point in points]
     y_points = [point.get_y() for point in points]
 
     # Close the convex hull in order to plot the edges
     hull.append(hull[0])
-    
+
     hull_x = [point.get_x() for point in hull]
     hull_y = [point.get_y() for point in hull]
 
