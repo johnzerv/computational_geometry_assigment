@@ -27,20 +27,20 @@ class Point2D:
     def __gt__(self, point_2D):
         return (self.x > point_2D.x) \
             or (self.x == point_2D.x and self.y > point_2D.y)
-    
+    # Getters    
     def get_x(self):
         return self.x
     def get_y(self):
         return self.y
 
 # Orientation Predicate using determinant
-# def ccw(Point1, Point2, Point3):
-#     ccw_array = np.array([[1, Point1.x, Point1.y],
-#                           [1, Point2.x, Point2.y],
-#                           [1, Point3.x, Point3.y]])
-
-#     return np.linalg.det(ccw_array)
-
+'''
+In order to compute the orientation predicate, we must compute the determinant : 
+| 1 x0 y0 |
+| 1 x1 y1 | = 1*(x1*y2 - y1 * x2) - x0 * (1*y2 - y1 * 1) + y0 * (1*x2 - x1 * 1) = x0 * (y1 - y2) + x1 * (y2 - y0) + x2 * (y0 - y1)  
+| 1 x2 y2 |
+                                                                                 
+'''
 def ccw(p0, p1, p2):
     return p0.x * (p1.y - p2.y) + p1.x * (p2.y-p0.y) + p2.x * (p0.y - p1.y)
 
@@ -168,8 +168,15 @@ if __name__ == "__main__":
     # print(gift_wrapping(points))
     hull = gift_wrapping(points)
 
+
+
+    # Plotting
     x_points = [point.get_x() for point in points]
     y_points = [point.get_y() for point in points]
+
+    # Close the convex hull in order to plot the edges
+    hull.append(hull[0])
+    
     hull_x = [point.get_x() for point in hull]
     hull_y = [point.get_y() for point in hull]
 
@@ -179,29 +186,28 @@ if __name__ == "__main__":
     axs[0].legend()
     axs[0].grid(True)
 
-    axs[1].scatter(hull_x, hull_y, color='red', label='Hull')
+    axs[1].scatter(x_points, y_points, color='blue', label='Points')
+    axs[1].plot(hull_x, hull_y, color='red', linewidth=2, label='Convex Hull')
     axs[1].legend()
     axs[1].grid(True)
 
     plt.tight_layout()  # Adjust subplot parameters to give specified padding
     plt.show()
 
-    new_hull = [Point2D(-10,5), Point2D(-2,-10), Point2D(15,-11), Point2D(24,-8), Point2D(3,21), Point2D(-3.5,13)]
-    new_hull_x = [point.get_x() for point in new_hull]
-    new_hull_y = [point.get_y() for point in new_hull]
+    # new_hull = [Point2D(-10,5), Point2D(-2,-10), Point2D(15,-11), Point2D(24,-8), Point2D(3,21), Point2D(-3.5,13)]
+    # new_hull_x = [point.get_x() for point in new_hull]
+    # new_hull_y = [point.get_y() for point in new_hull]
 
-    fig, axs = plt.subplots(2, 1, figsize=(8, 12))
-    axs[0].scatter(x_points, y_points, color='blue', label='Points')
-    axs[0].legend()
-    axs[0].grid(True)
+    # fig, axs = plt.subplots(2, 1, figsize=(8, 12))
+    # axs[0].scatter(x_points, y_points, color='blue', label='Points')
+    # axs[0].legend()
+    # axs[0].grid(True)
 
-    axs[1].scatter(new_hull_x, new_hull_y, color='red', label='Hull')
-    axs[1].legend()
-    axs[1].grid(True)
+    # axs[1].scatter(new_hull_x, new_hull_y, color='red', label='Hull')
+    # axs[1].legend()
+    # axs[1].grid(True)
 
-    plt.tight_layout()  # Adjust subplot parameters to give specified padding
-    plt.show()
+    # plt.tight_layout()  # Adjust subplot parameters to give specified padding
+    # plt.show()
 
-    
-print(hull)
     
