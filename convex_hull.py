@@ -3,7 +3,7 @@ import random
 from numpy import linalg
 import matplotlib.pyplot as plt
 import helpers as helpers
-
+from math import sqrt
 
 
 def grahams_scan(points):
@@ -175,41 +175,94 @@ def convex_hulls_merge(A_hull, B_hull):
 
     return result
 
+# Method to get the quadrangle with the furthest vertexes
+def find_furthest_quadrangle(points):
+    leftmost_vertex = min(points, key=lambda point: point.x)
+    lower_vertex = min(points, key=lambda point:point.y)
+    rightmost_vertex = max(points, key=lambda point: point.x)
+    upper_vertex = max(points, key=lambda point:point.y)
 
-if __name__ == "__main__":
-    points = [helpers.Point2D(1, 7),
-            helpers.Point2D(2, 14),
-            helpers.Point2D(3, 21),
-            helpers.Point2D(-3.5,13),
-            helpers.Point2D(18, -3),
-            helpers.Point2D(-2, -10),
-            helpers.Point2D(-10, 5),
-            helpers.Point2D(5, 6),
-            helpers.Point2D(3, 4),
-            helpers.Point2D(9, 3),
-            helpers.Point2D(11, 8),
-            helpers.Point2D(15, -11),
-            helpers.Point2D(24, -8),
-            helpers.Point2D(6, 8),
-            helpers.Point2D(3, 12)]
+    return leftmost_vertex, lower_vertex, rightmost_vertex, upper_vertex
+
+# Method to extract the right half plane that
+# Exclude points that define the line
+def right_half_plane(line_point1, line_point2, points):
+    right_half_plane = []
     
-    # is_internal_point(helpers.Point2D(), helpers.Point2D(), helpers.Point2D())
+    for point in points:
+        # Compute orientation-predicate to find if the point is right from line (clockwise) 
+        if helpers.ccw(line_point1, line_point2, point) < 0:
+            right_half_plane.insert(0, point)
+            
+    return right_half_plane
 
-    # grahams_scan(points)
-    # print(gift_wrapping(points))
-    # hull = gift_wrapping(points)
-    hull = divide_and_conquer(points)
+# Computes the furthest point to the line defined by a couple 2D-points 
+def furthest_point_to_line(points, line_point1, line_point2):
+    x1 = line_point1.get_x()
+    y1 = line_point1.get_y()
 
+    x2 = line_point2.get_x()
+    y2 = line_point2.get_y()
 
+    max_distance = -1
+    point_of_max_distance = None
+
+    for point in points:
+        x0 = point.get_x()
+        y0 = point.get_y()
+
+        # Line equation Ax + By + C = 0
+        A = y1 - y2
+        B = x2 - x1
+        C = x1 * y2 - x2 * y1
+
+        # Distance from point to line
+        current_distance =  abs(A * x0 + B * y0 + C) / sqrt(A * A + B * B)
+
+        if (current_distance > max_distance):
+            max_distance = current_distance
+            point_of_max_distance = point
+
+    return point_of_max_distance
+
+# Recursive method to compute extra convex-hull vertexes from the quadrangle with the furthest vertexes
+def quick_hull_helper(A, B, points):
+    # Firstly compute the right half plane defined by the line of 2D-points A,B
+    right_h_plane = right_half_plane(A, B, points)
+
+    if (right_h_plane == []):
+        return []
+
+    # Compute the new convex-hull vertex which is the furthest point to the line defined by A,B
+    C = furthest_point_to_line(right_h_plane, A, B)
+
+    # Compute extra vertexes for the two new lines defined by AC and CB and add it to new vertex C
+    return quick_hull_helper(A, C, points) + [C] + quick_hull_helper(C, B, points)
+
+def quick_hull(points):
+    # Need of at three points
+    if (len(points) < 3):
+        return points
+    
+    # Compute the four edge vertexes
+    leftmost, lower, rightmost, upper = find_furthest_quadrangle(points)
+
+    # Return computed vertexes and extra vertexes for each space defined by the half planes of the above 2D-points
+    return [leftmost] + quick_hull_helper(leftmost, lower, points) + [lower] +\
+           quick_hull_helper(lower, rightmost, points) + [rightmost] + quick_hull_helper(rightmost, upper, points) +\
+           [upper] + quick_hull_helper(upper, leftmost, points)
+
+# Method to plot 2D-Points and their convex hull
+def plot_convex_hull(points, convex_hull_points):
     # Plotting
     x_points = [point.get_x() for point in points]
     y_points = [point.get_y() for point in points]
 
     # Close the convex hull in order to plot the edges
-    hull.append(hull[0])
+    convex_hull_points.append(convex_hull_points[0])
 
-    hull_x = [point.get_x() for point in hull]
-    hull_y = [point.get_y() for point in hull]
+    hull_x = [point.get_x() for point in convex_hull_points]
+    hull_y = [point.get_y() for point in convex_hull_points]
 
     fig, axs = plt.subplots(2, 1, figsize=(8, 12))
 
@@ -225,7 +278,39 @@ if __name__ == "__main__":
     plt.tight_layout()  # Adjust subplot parameters to give specified padding
     plt.show()
 
-    # new_hull = [helpers.Point2D(-10,5), helpers.Point2D(-2,-10), helpers.Point2D(15,-11), helpers.Point2D(24,-8), helpers.Point2D(3,21), helpers.Point2D(-3.5,13)]
+
+
+if __name__ == "__main__":
+    points = [helpers.Point2D(1, 7),
+            helpers.Point2D(0, 14),
+            helpers.Point2D(3, 21),
+            helpers.Point2D(-3.5,13),
+            helpers.Point2D(18, -3),
+            helpers.Point2D(-2, -10),
+            helpers.Point2D(-10, 5),
+            helpers.Point2D(5, 6),
+            helpers.Point2D(3, 4),
+            helpers.Point2D(15,15),
+            helpers.Point2D(9, 3),
+            helpers.Point2D(11, 8),
+            helpers.Point2D(15, -11),
+            helpers.Point2D(24, -8),
+            helpers.Point2D(6, 8),
+            helpers.Point2D(3, 12)]
+    
+    # is_internal_point(helpers.Point2D(), helpers.Point2D(), helpers.Point2D())
+
+    grahams_scan_hull = grahams_scan(points)
+    gift_wrapping_hull = gift_wrapping(points)
+    divide_and_conquer_hull = divide_and_conquer(points)
+    quickhull_hull = quick_hull(points)
+    plot_convex_hull(points, grahams_scan_hull)
+    plot_convex_hull(points, gift_wrapping_hull)
+    plot_convex_hull(points, divide_and_conquer_hull)
+    plot_convex_hull(points, quickhull_hull)
+
+
+    # new_hull = [helpers.Point2D(-2, -10), helpers.Point2D(1, 7)]
     # new_hull_x = [point.get_x() for point in new_hull]
     # new_hull_y = [point.get_y() for point in new_hull]
 
@@ -234,11 +319,12 @@ if __name__ == "__main__":
     # axs[0].legend()
     # axs[0].grid(True)
 
-    # axs[1].scatter(new_hull_x, new_hull_y, color='red', label='Hull')
+    # axs[1].scatter(x_points, y_points, color='blue', label='Hull')
+    # axs[1].plot(new_hull_x, new_hull_y, color='red', linewidth=2, label='Convex Hull')
     # axs[1].legend()
     # axs[1].grid(True)
 
     # plt.tight_layout()  # Adjust subplot parameters to give specified padding
     # plt.show()
 
-    print(hull)
+    # print(hull)
