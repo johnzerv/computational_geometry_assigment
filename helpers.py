@@ -223,6 +223,6 @@ def create_gif(points, steps, output_gif):
             image = imageio.imread(frame)
             writer.append_data(image)
     
-    # Clean up frames
+    # # Clean up frames
     for frame in frames:
         os.remove(frame)

@@ -231,8 +231,7 @@ if __name__ == "__main__":
             helpers.Point2D(-10, -7),
             helpers.Point2D(-10, -8)]
     
-    grahams_scan_hull, steps = grahams_scan(points)
-    helpers.create_gif(points, steps, 'incremental.gif')
+    grahams_scan_hull, _ = grahams_scan(points)
 
     gift_wrapping_hull = gift_wrapping(points)
 
@@ -253,7 +252,7 @@ if __name__ == "__main__":
     grahams_scan_hull, steps = grahams_scan(points)
     grahams_scan_elapsed= time.time()-start
 
-
+    helpers.create_gif(points, steps, 'incremental.gif')
 
     start = time.time()
     gift_wrapping_hull = gift_wrapping(points)
