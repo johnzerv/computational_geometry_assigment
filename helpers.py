@@ -2,6 +2,9 @@ import numpy as np
 import random
 from numpy import linalg
 import matplotlib.pyplot as plt
+from math import sqrt
+import imageio
+import os
 
 # Class for representing 2D points
 class Point2D:
@@ -70,7 +73,7 @@ def is_collinear(p1, p2, p3):
     return (p3.y - p1.y) * (p2.x - p1.x) == (p2.y - p1.y) * (p3.x - p1.x)
 
 # Method to generate a list of <N> non-collinear random 2D points using uniform distribution
-def generate_random_2D_points_chat(N):
+def generate_non_collinear_random_2D_points(N):
     random_2D_points = []
     min_val, max_val, decimals = -50.0, 50.0, 2
 
@@ -109,3 +112,117 @@ def is_internal_point(x, y, z):
     y_between = min(x.y, z.y) <= y.y <= max(x.y, z.y)
 
     return x_between and y_between
+
+# Method to extract the right half plane that
+# Exclude points that define the line
+def right_half_plane(line_point1, line_point2, points):
+    right_half_plane = []
+    
+    for point in points:
+        # Compute orientation-predicate to find if the point is right from line (clockwise) 
+        if ccw(line_point1, line_point2, point) < 0:
+            right_half_plane.insert(0, point)
+            
+    return right_half_plane
+
+# Computes the furthest point to the line defined by a couple 2D-points 
+def furthest_point_to_line(points, line_point1, line_point2):
+    x1 = line_point1.get_x()
+    y1 = line_point1.get_y()
+
+    x2 = line_point2.get_x()
+    y2 = line_point2.get_y()
+
+    max_distance = -1
+    point_of_max_distance = None
+
+    for point in points:
+        x0 = point.get_x()
+        y0 = point.get_y()
+
+        # Line equation Ax + By + C = 0
+        A = y1 - y2
+        B = x2 - x1
+        C = x1 * y2 - x2 * y1
+
+        # Distance from point to line
+        current_distance =  abs(A * x0 + B * y0 + C) / sqrt(A * A + B * B)
+
+        if (current_distance > max_distance):
+            max_distance = current_distance
+            point_of_max_distance = point
+
+    return point_of_max_distance
+
+# Method to get the quadrangle with the furthest vertexes
+def find_furthest_quadrangle(points):
+    leftmost_vertex = min(points, key=lambda point: point.x)
+    lower_vertex = min(points, key=lambda point:point.y)
+    rightmost_vertex = max(points, key=lambda point: point.x)
+    upper_vertex = max(points, key=lambda point:point.y)
+
+    return leftmost_vertex, lower_vertex, rightmost_vertex, upper_vertex
+
+# Method to plot 2D-Points and their convex hull
+def plot_convex_hull(points, convex_hull_points, title, elapsed_time):
+    # Plotting
+    x_points = [point.get_x() for point in points]
+    y_points = [point.get_y() for point in points]
+
+    # Close the convex hull in order to plot the edges
+    convex_hull_points.append(convex_hull_points[0])
+
+    hull_x = [point.get_x() for point in convex_hull_points]
+    hull_y = [point.get_y() for point in convex_hull_points]
+
+    fig, axs = plt.subplots(2, 1, figsize=(8, 12))
+
+    plot_title = "Convex Hull with " + title + " Algorithm"
+    if (elapsed_time != None):
+        plot_title += " and elapsed time " + str(elapsed_time)
+
+    axs[0].scatter(x_points, y_points, color='blue', label='Points')
+    axs[0].legend()
+    axs[0].grid(True)
+
+    axs[1].scatter(x_points, y_points, color='blue', label='Points')
+    axs[1].scatter(hull_x, hull_y, color='red', label='Hull Vertexes')
+    axs[1].plot(hull_x, hull_y, color='red', linewidth=2, label='Convex Hull')
+    axs[1].legend()
+    axs[1].grid(True)
+
+    plt.title(plot_title)
+    plt.tight_layout()  # Adjust subplot parameters to give specified padding
+    plt.savefig(title + ".png")
+
+# Method for ploting algorithm steps of finding convex hull and saving these frames
+def plot_a_frame(points, hull_points, step_name, file_name):
+    plt.figure(figsize=(8, 8))
+    plt.scatter([point.x for point in points], [point.y for point in points], label='Points')
+
+    if hull_points:
+        hull_points.append(hull_points[0])  # To form a closed loop
+        plt.plot([point.x for point in hull_points], [point.y for point in hull_points], 'r-', label='Hull')
+
+    plt.title(step_name)
+    plt.legend()
+    plt.savefig(file_name)
+    plt.close()
+
+# Method for creating gif from a set of algorithm steps using imageio library
+def create_gif(points, steps, output_gif):
+    frames = []
+
+    for i, (hull_points, step_name) in enumerate(steps):
+        file_name = f"step_{i:03d}.png"
+        plot_a_frame(points, hull_points, step_name, file_name)
+        frames.append(file_name)
+    
+    with imageio.get_writer(output_gif, mode='I', duration=0.5) as writer:
+        for frame in frames:
+            image = imageio.imread(frame)
+            writer.append_data(image)
+    
+    # Clean up frames
+    for frame in frames:
+        os.remove(frame)

@@ -3,24 +3,28 @@ import random
 from numpy import linalg
 import matplotlib.pyplot as plt
 import helpers as helpers
-from math import sqrt
-
+import time
 
 def grahams_scan(points):
     # Need of at least three points 
     if len(points) < 3:
         return points
     
+    # Store steps of creating convex hull to visualize it
+    steps = []
+    
     # Firstly, sort the point by x-coordinate
     sorted_points = sorted(points)
 
     # Compute upper convex-hull
     upper_hull = [sorted_points[0], sorted_points[1]]
+    steps.append((list(upper_hull), 'Upper Hull'))
     
     # Start from the third element
     for i in range(2, len(sorted_points)):
         point_i = sorted_points[i]
         upper_hull.append(point_i)
+        steps.append((list(upper_hull), 'Upper Hull'))
         
         # While there are at least 3 points in the upper convex-hull and the three last don't define CW turn
         while (len(upper_hull) > 2  and (helpers.ccw(upper_hull[-3], upper_hull[-2], upper_hull[-1]) > 0)):
@@ -29,13 +33,17 @@ def grahams_scan(points):
 
     # Similarly for the lower convex-hull
     lower_hull = [sorted_points[-1], sorted_points[-2]]
+    steps.append((list(lower_hull), 'Lower Hull'))
 
     for i in range(len(sorted_points)-3, -1, -1):
         point_i = sorted_points[i]
         lower_hull.append(point_i)
-
+        steps.append((list(lower_hull), 'Lower Hull'))
+    
         while (len(lower_hull) > 2 and helpers.ccw(lower_hull[-3], lower_hull[-2], lower_hull[-1]) > 0):
             lower_hull.pop(-2)
+            steps.append((list(lower_hull), 'Lower Hull'))
+
 
     # Remove the first and the last point from the lower convex-hull in order to don't count duplicates with upper
     lower_hull.pop(0)
@@ -43,8 +51,9 @@ def grahams_scan(points):
 
     # The entire convex hull is the concatenation of upper and lower
     entire_hull = upper_hull + lower_hull
+    steps.append((list(entire_hull), 'Final Hull'))
 
-    return entire_hull
+    return entire_hull, steps
 
 def gift_wrapping(points):
     # Need of at least three points 
@@ -175,66 +184,16 @@ def convex_hulls_merge(A_hull, B_hull):
 
     return result
 
-# Method to get the quadrangle with the furthest vertexes
-def find_furthest_quadrangle(points):
-    leftmost_vertex = min(points, key=lambda point: point.x)
-    lower_vertex = min(points, key=lambda point:point.y)
-    rightmost_vertex = max(points, key=lambda point: point.x)
-    upper_vertex = max(points, key=lambda point:point.y)
-
-    return leftmost_vertex, lower_vertex, rightmost_vertex, upper_vertex
-
-# Method to extract the right half plane that
-# Exclude points that define the line
-def right_half_plane(line_point1, line_point2, points):
-    right_half_plane = []
-    
-    for point in points:
-        # Compute orientation-predicate to find if the point is right from line (clockwise) 
-        if helpers.ccw(line_point1, line_point2, point) < 0:
-            right_half_plane.insert(0, point)
-            
-    return right_half_plane
-
-# Computes the furthest point to the line defined by a couple 2D-points 
-def furthest_point_to_line(points, line_point1, line_point2):
-    x1 = line_point1.get_x()
-    y1 = line_point1.get_y()
-
-    x2 = line_point2.get_x()
-    y2 = line_point2.get_y()
-
-    max_distance = -1
-    point_of_max_distance = None
-
-    for point in points:
-        x0 = point.get_x()
-        y0 = point.get_y()
-
-        # Line equation Ax + By + C = 0
-        A = y1 - y2
-        B = x2 - x1
-        C = x1 * y2 - x2 * y1
-
-        # Distance from point to line
-        current_distance =  abs(A * x0 + B * y0 + C) / sqrt(A * A + B * B)
-
-        if (current_distance > max_distance):
-            max_distance = current_distance
-            point_of_max_distance = point
-
-    return point_of_max_distance
-
 # Recursive method to compute extra convex-hull vertexes from the quadrangle with the furthest vertexes
 def quick_hull_helper(A, B, points):
     # Firstly compute the right half plane defined by the line of 2D-points A,B
-    right_h_plane = right_half_plane(A, B, points)
+    right_h_plane = helpers.right_half_plane(A, B, points)
 
     if (right_h_plane == []):
         return []
 
     # Compute the new convex-hull vertex which is the furthest point to the line defined by A,B
-    C = furthest_point_to_line(right_h_plane, A, B)
+    C = helpers.furthest_point_to_line(right_h_plane, A, B)
 
     # Compute extra vertexes for the two new lines defined by AC and CB and add it to new vertex C
     return quick_hull_helper(A, C, points) + [C] + quick_hull_helper(C, B, points)
@@ -245,87 +204,72 @@ def quick_hull(points):
         return points
     
     # Compute the four edge vertexes
-    leftmost, lower, rightmost, upper = find_furthest_quadrangle(points)
+    leftmost, lower, rightmost, upper = helpers.find_furthest_quadrangle(points)
 
     # Return computed vertexes and extra vertexes for each space defined by the half planes of the above 2D-points
     return [leftmost] + quick_hull_helper(leftmost, lower, points) + [lower] +\
            quick_hull_helper(lower, rightmost, points) + [rightmost] + quick_hull_helper(rightmost, upper, points) +\
            [upper] + quick_hull_helper(upper, leftmost, points)
 
-# Method to plot 2D-Points and their convex hull
-def plot_convex_hull(points, convex_hull_points, title):
-    # Plotting
-    x_points = [point.get_x() for point in points]
-    y_points = [point.get_y() for point in points]
-
-    # Close the convex hull in order to plot the edges
-    convex_hull_points.append(convex_hull_points[0])
-
-    hull_x = [point.get_x() for point in convex_hull_points]
-    hull_y = [point.get_y() for point in convex_hull_points]
-
-    fig, axs = plt.subplots(2, 1, figsize=(8, 12))
-    plt.title("Convex Hull with " + title + " Algorithm")
-
-    axs[0].scatter(x_points, y_points, color='blue', label='Points')
-    axs[0].legend()
-    axs[0].grid(True)
-
-    axs[1].scatter(x_points, y_points, color='blue', label='Points')
-    axs[1].plot(hull_x, hull_y, color='red', linewidth=2, label='Convex Hull')
-    axs[1].legend()
-    axs[1].grid(True)
-
-    plt.tight_layout()  # Adjust subplot parameters to give specified padding
-    plt.show()
-
-
-
 if __name__ == "__main__":
-    # points = [helpers.Point2D(1, 7),
-    #         helpers.Point2D(0, 14),
-    #         helpers.Point2D(3, 21),
-    #         helpers.Point2D(-3.5,13),
-    #         helpers.Point2D(18, -3),
-    #         helpers.Point2D(-2, -10),
-    #         helpers.Point2D(-10, 5),
-    #         helpers.Point2D(5, 6),
-    #         helpers.Point2D(3, 4),
-    #         helpers.Point2D(15,15),
-    #         helpers.Point2D(9, 3),
-    #         helpers.Point2D(11, 8),
-    #         helpers.Point2D(15, -11),
-    #         helpers.Point2D(24, -8),
-    #         helpers.Point2D(6, 8),
-    #         helpers.Point2D(3, 12)]
+    points = [helpers.Point2D(2, 8),
+            helpers.Point2D(0, 14),
+            helpers.Point2D(3, 21),
+            helpers.Point2D(-3.5,13),
+            helpers.Point2D(18, -3),
+            helpers.Point2D(-2, -10),
+            helpers.Point2D(-10, 5),
+            helpers.Point2D(2, 6),
+            helpers.Point2D(1, 3),
+            helpers.Point2D(15,15),
+            helpers.Point2D(9, 3),
+            helpers.Point2D(11, 8),
+            helpers.Point2D(15, -11),
+            helpers.Point2D(24, -8),
+            helpers.Point2D(6, 9),
+            helpers.Point2D(3, 12),
+            helpers.Point2D(-10, -7),
+            helpers.Point2D(-10, -8)]
     
+    grahams_scan_hull, steps = grahams_scan(points)
+    helpers.create_gif(points, steps, 'incremental.gif')
 
-    points = helpers.generate_random_2D_points_chat(100)
-    grahams_scan_hull = grahams_scan(points)
     gift_wrapping_hull = gift_wrapping(points)
+
     divide_and_conquer_hull = divide_and_conquer(points)
+
     quickhull_hull = quick_hull(points)
-    plot_convex_hull(points, grahams_scan_hull, "Graham's Scan")
-    plot_convex_hull(points, gift_wrapping_hull, "Gift Wrapping")
-    plot_convex_hull(points, divide_and_conquer_hull, "Divide and Conquer")
-    plot_convex_hull(points, quickhull_hull, "Quick Hull")
+
+    helpers.plot_convex_hull(points, grahams_scan_hull, "Graham's Scan", None)
+    helpers.plot_convex_hull(points, gift_wrapping_hull, "Gift Wrapping", None)
+    helpers.plot_convex_hull(points, divide_and_conquer_hull, "Divide and Conquer", None)
+    helpers.plot_convex_hull(points, quickhull_hull, "Quick Hull", None)
+    
+    # Generate 100 non-collinear 2D random points in order to measure
+    # elapsed time for each algorithm
+    points = helpers.generate_non_collinear_random_2D_points(100)
+
+    start = time.time()
+    grahams_scan_hull, steps = grahams_scan(points)
+    grahams_scan_elapsed= time.time()-start
 
 
-    # new_hull = [helpers.Point2D(-2, -10), helpers.Point2D(1, 7)]
-    # new_hull_x = [point.get_x() for point in new_hull]
-    # new_hull_y = [point.get_y() for point in new_hull]
 
-    # fig, axs = plt.subplots(2, 1, figsize=(8, 12))
-    # axs[0].scatter(x_points, y_points, color='blue', label='Points')
-    # axs[0].legend()
-    # axs[0].grid(True)
+    start = time.time()
+    gift_wrapping_hull = gift_wrapping(points)
+    gift_wrapping_elapsed = time.time()-start
 
-    # axs[1].scatter(x_points, y_points, color='blue', label='Hull')
-    # axs[1].plot(new_hull_x, new_hull_y, color='red', linewidth=2, label='Convex Hull')
-    # axs[1].legend()
-    # axs[1].grid(True)
+    start = time.time()
+    divide_and_conquer_hull = divide_and_conquer(points)
+    divide_and_conquer_elapsed = time.time()-start
 
-    # plt.tight_layout()  # Adjust subplot parameters to give specified padding
-    # plt.show()
+    start = time.time()
+    quickhull_hull = quick_hull(points)
+    quick_hull_elapsed = time.time()-start
 
-    # print(hull)
+    helpers.plot_convex_hull(points, grahams_scan_hull, "Graham's Scan", grahams_scan_elapsed)
+    helpers.plot_convex_hull(points, gift_wrapping_hull, "Gift Wrapping", gift_wrapping_elapsed)
+    helpers.plot_convex_hull(points, divide_and_conquer_hull, "Divide and Conquer", divide_and_conquer_elapsed)
+    helpers.plot_convex_hull(points, quickhull_hull, "Quick Hull", quick_hull_elapsed)
+
+
