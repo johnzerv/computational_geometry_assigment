@@ -30,7 +30,7 @@ def grahams_scan(points):
     # Similarly for the lower convex-hull
     lower_hull = [sorted_points[-1], sorted_points[-2]]
 
-    for i in range(len(sorted_points)-3, 0, -1):
+    for i in range(len(sorted_points)-3, -1, -1):
         point_i = sorted_points[i]
         lower_hull.append(point_i)
 
@@ -253,7 +253,7 @@ def quick_hull(points):
            [upper] + quick_hull_helper(upper, leftmost, points)
 
 # Method to plot 2D-Points and their convex hull
-def plot_convex_hull(points, convex_hull_points):
+def plot_convex_hull(points, convex_hull_points, title):
     # Plotting
     x_points = [point.get_x() for point in points]
     y_points = [point.get_y() for point in points]
@@ -265,6 +265,7 @@ def plot_convex_hull(points, convex_hull_points):
     hull_y = [point.get_y() for point in convex_hull_points]
 
     fig, axs = plt.subplots(2, 1, figsize=(8, 12))
+    plt.title("Convex Hull with " + title + " Algorithm")
 
     axs[0].scatter(x_points, y_points, color='blue', label='Points')
     axs[0].legend()
@@ -281,33 +282,33 @@ def plot_convex_hull(points, convex_hull_points):
 
 
 if __name__ == "__main__":
-    points = [helpers.Point2D(1, 7),
-            helpers.Point2D(0, 14),
-            helpers.Point2D(3, 21),
-            helpers.Point2D(-3.5,13),
-            helpers.Point2D(18, -3),
-            helpers.Point2D(-2, -10),
-            helpers.Point2D(-10, 5),
-            helpers.Point2D(5, 6),
-            helpers.Point2D(3, 4),
-            helpers.Point2D(15,15),
-            helpers.Point2D(9, 3),
-            helpers.Point2D(11, 8),
-            helpers.Point2D(15, -11),
-            helpers.Point2D(24, -8),
-            helpers.Point2D(6, 8),
-            helpers.Point2D(3, 12)]
+    # points = [helpers.Point2D(1, 7),
+    #         helpers.Point2D(0, 14),
+    #         helpers.Point2D(3, 21),
+    #         helpers.Point2D(-3.5,13),
+    #         helpers.Point2D(18, -3),
+    #         helpers.Point2D(-2, -10),
+    #         helpers.Point2D(-10, 5),
+    #         helpers.Point2D(5, 6),
+    #         helpers.Point2D(3, 4),
+    #         helpers.Point2D(15,15),
+    #         helpers.Point2D(9, 3),
+    #         helpers.Point2D(11, 8),
+    #         helpers.Point2D(15, -11),
+    #         helpers.Point2D(24, -8),
+    #         helpers.Point2D(6, 8),
+    #         helpers.Point2D(3, 12)]
     
-    # is_internal_point(helpers.Point2D(), helpers.Point2D(), helpers.Point2D())
 
+    points = helpers.generate_random_2D_points_chat(100)
     grahams_scan_hull = grahams_scan(points)
     gift_wrapping_hull = gift_wrapping(points)
     divide_and_conquer_hull = divide_and_conquer(points)
     quickhull_hull = quick_hull(points)
-    plot_convex_hull(points, grahams_scan_hull)
-    plot_convex_hull(points, gift_wrapping_hull)
-    plot_convex_hull(points, divide_and_conquer_hull)
-    plot_convex_hull(points, quickhull_hull)
+    plot_convex_hull(points, grahams_scan_hull, "Graham's Scan")
+    plot_convex_hull(points, gift_wrapping_hull, "Gift Wrapping")
+    plot_convex_hull(points, divide_and_conquer_hull, "Divide and Conquer")
+    plot_convex_hull(points, quickhull_hull, "Quick Hull")
 
 
     # new_hull = [helpers.Point2D(-2, -10), helpers.Point2D(1, 7)]

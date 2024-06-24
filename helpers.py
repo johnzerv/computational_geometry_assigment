@@ -65,6 +65,41 @@ def generate_random_2D_points(N):
 
     return random_2D_points
 
+# Method to check if three points are collinear
+def is_collinear(p1, p2, p3):
+    return (p3.y - p1.y) * (p2.x - p1.x) == (p2.y - p1.y) * (p3.x - p1.x)
+
+# Method to generate a list of <N> non-collinear random 2D points using uniform distribution
+def generate_random_2D_points_chat(N):
+    random_2D_points = []
+    min_val, max_val, decimals = -50.0, 50.0, 2
+
+    # Generate the first two points
+    for _ in range(2):
+        x = round(random.uniform(min_val, max_val), decimals)
+        y = round(random.uniform(min_val, max_val), decimals)
+        random_2D_points.append(Point2D(x, y))
+
+    while len(random_2D_points) < N:
+        x = round(random.uniform(min_val, max_val), decimals)
+        y = round(random.uniform(min_val, max_val), decimals)
+        new_point = Point2D(x, y)
+        
+        # Check collinearity with all pairs of existing points
+        is_new_point_collinear = False
+        for i in range(len(random_2D_points) - 1):
+            for j in range(i + 1, len(random_2D_points)):
+                if is_collinear(random_2D_points[i], random_2D_points[j], new_point):
+                    is_new_point_collinear = True
+                    break
+            if is_new_point_collinear:
+                break
+        
+        if not is_new_point_collinear:
+            random_2D_points.append(new_point)
+
+    return random_2D_points
+
 # Method to check if the second of the three arguments is internal point of the line segment <xz>
 def is_internal_point(x, y, z):
     # Check if y is between x and z on the x-coordinate
@@ -74,4 +109,3 @@ def is_internal_point(x, y, z):
     y_between = min(x.y, z.y) <= y.y <= max(x.y, z.y)
 
     return x_between and y_between
-    
