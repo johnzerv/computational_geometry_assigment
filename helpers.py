@@ -210,7 +210,7 @@ def plot_a_frame(points, hull_points, step_name, file_name):
     plt.close()
 
 # Method for creating gif from a set of algorithm steps using imageio library
-def create_gif(points, steps, output_gif):
+def create_gif_by_steps(points, steps, output_gif):
     frames = []
 
     for i, (hull_points, step_name) in enumerate(steps):
@@ -218,6 +218,16 @@ def create_gif(points, steps, output_gif):
         plot_a_frame(points, hull_points, step_name, file_name)
         frames.append(file_name)
     
+    with imageio.get_writer(output_gif, mode='I', duration=0.5) as writer:
+        for frame in frames:
+            image = imageio.imread(frame)
+            writer.append_data(image)
+    
+    # # Clean up frames
+    for frame in frames:
+        os.remove(frame)
+
+def create_gif_by_frames(output_gif, frames):
     with imageio.get_writer(output_gif, mode='I', duration=0.5) as writer:
         for frame in frames:
             image = imageio.imread(frame)
