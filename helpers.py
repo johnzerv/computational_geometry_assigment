@@ -127,18 +127,18 @@ def right_half_plane(line_point1, line_point2, points):
 
 # Computes the furthest point to the line defined by a couple 2D-points 
 def furthest_point_to_line(points, line_point1, line_point2):
-    x1 = line_point1.get_x()
-    y1 = line_point1.get_y()
+    x1 = line_point1.x
+    y1 = line_point1.y
 
-    x2 = line_point2.get_x()
-    y2 = line_point2.get_y()
+    x2 = line_point2.x
+    y2 = line_point2.y
 
     max_distance = -1
     point_of_max_distance = None
 
     for point in points:
-        x0 = point.get_x()
-        y0 = point.get_y()
+        x0 = point.x
+        y0 = point.y
 
         # Line equation Ax + By + C = 0
         A = y1 - y2
@@ -166,14 +166,14 @@ def find_furthest_quadrangle(points):
 # Method to plot 2D-Points and their convex hull
 def plot_convex_hull(points, convex_hull_points, title, elapsed_time):
     # Plotting
-    x_points = [point.get_x() for point in points]
-    y_points = [point.get_y() for point in points]
+    x_points = [point.x for point in points]
+    y_points = [point.y for point in points]
 
     # Close the convex hull in order to plot the edges
     convex_hull_points.append(convex_hull_points[0])
 
-    hull_x = [point.get_x() for point in convex_hull_points]
-    hull_y = [point.get_y() for point in convex_hull_points]
+    hull_x = [point.x for point in convex_hull_points]
+    hull_y = [point.y for point in convex_hull_points]
 
     fig, axs = plt.subplots(2, 1, figsize=(8, 12))
 
@@ -236,3 +236,55 @@ def create_gif_by_frames(output_gif, frames):
     # # Clean up frames
     for frame in frames:
         os.remove(frame)
+
+def median_point(points, by='x'):
+    size = len(points)
+
+    if (by == 'x'):
+        sorted_points = sorted(points, key=lambda point: point.x)
+    elif (by == 'y'):
+        sorted_points = sorted(points, key=lambda point:point.y)
+
+    if size % 2 == 1:
+        return sorted_points[size // 2] # ceil(size/2)
+    else:
+        return sorted_points[size // 2 - 1]
+    
+def separate_to_subsets(points, median, by='x'):
+    min_subset = []
+    max_subset = []
+
+    if (by == 'x'):
+        for point in points:
+            if (point.x <= median.x):
+                min_subset.append(point)
+            else:
+                max_subset.append(point)
+
+    elif (by == 'y'):
+        for point in points:
+            if (point.y <= median.y):
+                min_subset.append(point)
+            else:
+                max_subset.append(point)
+
+    return min_subset, max_subset
+
+# Function to plot 2D points
+def plot_points(points):
+    # Extract x and y coordinates from the points
+    x_coords = [point.x for point in points]
+    y_coords = [point.y for point in points]
+
+    # Create the plot
+    plt.figure(figsize=(8, 6))
+    plt.scatter(x_coords, y_coords, color='blue', marker='o')
+
+    # Add title and labels
+    plt.title('Points')
+    plt.xlabel('X-coordinate')
+    plt.ylabel('Y-coordinate')
+
+    # Display the plot
+    plt.grid(True)
+    plt.show()
