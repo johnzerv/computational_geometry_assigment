@@ -1,7 +1,7 @@
 import numpy as np
 import random
-from numpy import linalg
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 from math import sqrt
 import imageio
 import os
@@ -223,7 +223,7 @@ def create_gif_by_steps(points, steps, output_gif):
             image = imageio.imread(frame)
             writer.append_data(image)
     
-    # # Clean up frames
+    # Clean up frames
     for frame in frames:
         os.remove(frame)
 
@@ -271,19 +271,28 @@ def separate_to_subsets(points, median, by='x'):
     return min_subset, max_subset
 
 # Function to plot 2D points
-def plot_points(points):
+def plot_points(points, rectangles):
     # Extract x and y coordinates from the points
     x_coords = [point.x for point in points]
     y_coords = [point.y for point in points]
 
     # Create the plot
-    plt.figure(figsize=(8, 6))
-    plt.scatter(x_coords, y_coords, color='blue', marker='o')
+    _, ax = plt.subplots(figsize=(8, 6))
+    ax.scatter(x_coords, y_coords, color='blue', marker='o')
+
+    # Add rectangles to the plot
+    for rect in rectangles:
+        left, right, lower, upper = rect
+        width = right - left
+        height = upper - lower
+        rectangle = patches.Rectangle((left, lower), width, height,
+                                      fill=True, color='gray', alpha=0.5)
+        ax.add_patch(rectangle)
 
     # Add title and labels
-    plt.title('Points')
-    plt.xlabel('X-coordinate')
-    plt.ylabel('Y-coordinate')
+    ax.set_title('Points with Rectangles')
+    ax.set_xlabel('X-coordinate')
+    ax.set_ylabel('Y-coordinate')
 
     # Display the plot
     plt.grid(True)

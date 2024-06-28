@@ -184,7 +184,7 @@ def convex_hulls_merge(A_hull, B_hull):
 
     return result
 
-# Recursive method to compute extra convex-hull vertexes from the quadrangle with the furthest vertexes
+# Recursive method to compute extra convex-hull vertices from the quadrangle with the furthest vertices
 def quick_hull_helper(A, B, points):
     # Firstly compute the right half plane defined by the line of 2D-points A,B
     right_h_plane = helpers.right_half_plane(A, B, points)
@@ -195,7 +195,7 @@ def quick_hull_helper(A, B, points):
     # Compute the new convex-hull vertex which is the furthest point to the line defined by A,B
     C = helpers.furthest_point_to_line(right_h_plane, A, B)
 
-    # Compute extra vertexes for the two new lines defined by AC and CB and add it to new vertex C
+    # Compute extra vertices for the two new lines defined by AC and CB and add it to new vertex C
     return quick_hull_helper(A, C, points) + [C] + quick_hull_helper(C, B, points)
 
 def quick_hull(points):
@@ -203,10 +203,10 @@ def quick_hull(points):
     if (len(points) < 3):
         return points
     
-    # Compute the four edge vertexes
+    # Compute the four edge vertices
     leftmost, lower, rightmost, upper = helpers.find_furthest_quadrangle(points)
 
-    # Return computed vertexes and extra vertexes for each space defined by the half planes of the above 2D-points
+    # Return computed vertices and extra vertices for each space defined by the half planes of the above 2D-points
     return [leftmost] + quick_hull_helper(leftmost, lower, points) + [lower] +\
            quick_hull_helper(lower, rightmost, points) + [rightmost] + quick_hull_helper(rightmost, upper, points) +\
            [upper] + quick_hull_helper(upper, leftmost, points)
