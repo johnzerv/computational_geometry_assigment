@@ -16,6 +16,12 @@ class KDTreeNode:
         if self.left:
             self.left.print(indent + ("    " if last else "│   "), True)
 
+    def to_list(self):
+        if (self.left == None and self.right == None):
+            return [self.point]
+        
+        return self.left.to_list() + self.right.to_list()
+
 class KDTree:
     def __init__(self, points):
         self.leftmost_x = float('inf')
@@ -80,7 +86,6 @@ class KDTree:
             else:
                 return [leftmost, rightmost, node.point.y, upper]
 
-    
     def print(self):
         if self is not None:
             self.root.print()
@@ -103,6 +108,10 @@ if __name__ == "__main__":
     print(kdtree.upper_y)
 
     rec = kdtree.find_region(kdtree.root.left, kdtree.find_region(kdtree.root, kdtree.find_region(), 'left', 1), 'left', 2)
+
+    mypoints = kdtree.root.left.left.to_list()
+
+    print(mypoints)
 
 
     plot_points(points, [rec])

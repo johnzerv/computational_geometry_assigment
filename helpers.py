@@ -297,3 +297,34 @@ def plot_points(points, rectangles):
     # Display the plot
     plt.grid(True)
     plt.show()
+
+    def is_sub_rectangle(rec, target_rec):
+        left1, right1, lower1, upper1 = rec
+        left2, right2, lower2, upper2 = target_rec
+
+        if (left1 >= left2 and right1 <= right2 and lower1 >= lower2 and upper1 <= upper2):
+            return True
+        
+        return False
+    
+    def is_point_in_rectangle(point, rec):
+        left, right, lower, upper = rec
+
+        if (point.x >= left and point.x <= right and point.y >= lower and point.y <= upper):
+            return True
+        
+        return False
+    
+    def is_rectangles_intersection_empty(rec, target_rec):
+        left1, right1, lower1, upper1 = rec
+        left2, right2, lower2, upper2 = target_rec
+
+        # Check if one rectangle is to the left of the other
+        if right1 < left2 or right2 < left1:
+            return False
+        
+        # Check if one rectangle is above the other
+        if upper1 < lower2 or upper2 < lower1:
+            return False
+        
+        return True
