@@ -271,7 +271,7 @@ def separate_to_subsets(points, median, by='x'):
     return min_subset, max_subset
 
 # Function to plot 2D points
-def plot_points(points, rectangles):
+def plot_points(points, rectangles, rec_color='gray'):
     # Extract x and y coordinates from the points
     x_coords = [point.x for point in points]
     y_coords = [point.y for point in points]
@@ -286,7 +286,7 @@ def plot_points(points, rectangles):
         width = right - left
         height = upper - lower
         rectangle = patches.Rectangle((left, lower), width, height,
-                                      fill=True, color='gray', alpha=0.5)
+                                      fill=True, color=rec_color, alpha=0.5)
         ax.add_patch(rectangle)
 
     # Add title and labels
@@ -298,33 +298,33 @@ def plot_points(points, rectangles):
     plt.grid(True)
     plt.show()
 
-    def is_sub_rectangle(rec, target_rec):
-        left1, right1, lower1, upper1 = rec
-        left2, right2, lower2, upper2 = target_rec
+def is_point_in_rectangle(point, rec):
+    left, right, lower, upper = rec
 
-        if (left1 >= left2 and right1 <= right2 and lower1 >= lower2 and upper1 <= upper2):
-            return True
-        
-        return False
-    
-    def is_point_in_rectangle(point, rec):
-        left, right, lower, upper = rec
-
-        if (point.x >= left and point.x <= right and point.y >= lower and point.y <= upper):
-            return True
-        
-        return False
-    
-    def is_rectangles_intersection_empty(rec, target_rec):
-        left1, right1, lower1, upper1 = rec
-        left2, right2, lower2, upper2 = target_rec
-
-        # Check if one rectangle is to the left of the other
-        if right1 < left2 or right2 < left1:
-            return False
-        
-        # Check if one rectangle is above the other
-        if upper1 < lower2 or upper2 < lower1:
-            return False
-        
+    if (point.x >= left and point.x <= right and point.y >= lower and point.y <= upper):
         return True
+    
+    return False
+
+def is_sub_rectangle(rec, target_rec):
+    left1, right1, lower1, upper1 = rec
+    left2, right2, lower2, upper2 = target_rec
+
+    if (left1 >= left2 and right1 <= right2 and lower1 >= lower2 and upper1 <= upper2):
+        return True
+    
+    return False
+
+def is_rectangles_intersection_non_empty(rec, target_rec):
+    left1, right1, lower1, upper1 = rec
+    left2, right2, lower2, upper2 = target_rec
+
+    # Check if one rectangle is to the left of the other
+    if right1 < left2 or right2 < left1:
+        return False
+    
+    # Check if one rectangle is above the other
+    if upper1 < lower2 or upper2 < lower1:
+        return False
+    
+    return True

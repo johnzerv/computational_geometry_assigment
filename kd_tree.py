@@ -1,4 +1,5 @@
-from helpers import Point2D, median_point, separate_to_subsets, plot_points
+from helpers import Point2D, median_point, separate_to_subsets, plot_points,\
+                    is_point_in_rectangle, is_sub_rectangle, is_rectangles_intersection_non_empty
 
 class KDTreeNode:
     def __init__(self, key):
@@ -85,6 +86,39 @@ class KDTree:
             
             else:
                 return [leftmost, rightmost, node.point.y, upper]
+            
+    def _investigate(self, node, target_region, prev_node_region, depth=0):
+        if (node.left == None and node.right == None):
+            if (is_point_in_rectangle(node.point, target_region)):
+                return [node]
+        
+        else:
+            result = []
+
+            left_child_region = self.find_region(node, prev_node_region, 'left', depth+1)
+
+            if (is_sub_rectangle(left_child_region, target_region)):
+                result += [node.left]
+            elif (is_rectangles_intersection_non_empty(left_child_region, target_region)):
+                left_child_result = self._investigate(node.left, target_region, left_child_region, depth+1)
+
+                result += [] if left_child_result == None else left_child_result
+
+
+            right_child_region = self.find_region(node, prev_node_region, 'right', depth+1)
+
+            if (is_sub_rectangle(right_child_region, target_region)):
+                result += [node.right]
+            elif (is_rectangles_intersection_non_empty(right_child_region, target_region)):
+                right_child_result = self._investigate(node.right, target_region, right_child_region, depth+1)
+
+                result += [] if right_child_result == None else right_child_result                    
+        
+            return result
+            
+    def investigate(self, region):
+        return self._investigate(self.root, region, self.find_region())
+
 
     def print(self):
         if self is not None:
@@ -109,9 +143,40 @@ if __name__ == "__main__":
 
     rec = kdtree.find_region(kdtree.root.left, kdtree.find_region(kdtree.root, kdtree.find_region(), 'left', 1), 'left', 2)
 
+    rec2 = kdtree.find_region(kdtree.root, kdtree.find_region(), 'right', 1)
+
     mypoints = kdtree.root.left.left.to_list()
 
-    print(mypoints)
+
+    print(rec)
+
+    plot_points(points, [rec2])
+
+    if (is_sub_rectangle(rec, rec)):
+        print('sub')
+    else:
+        print('Not sub')
+
+    searched_rec = kdtree.investigate([2, 4, 4, 6])
+    # print(searched_rec)
+    res = []
+    for l in searched_rec:
+        res += l.to_list()
+
+    print(res)
+
+    # plot_points(points, [searched_rec], rec_color='black')
+
+    plot_points(points, [[2,4,4,6]], rec_color='black')
+    plot_points(points, [[2 ,5, 2.5, 8]])
+    plot_points(points,[ [2 ,5, 2.5, 5]])
+    plot_points(points, [[2 , 3, 2.5, 5]])
+    plot_points(points, [[2,3 , 2.5, 4]], rec_color='red')
+    plot_points(points, [[2,3,4,5]], rec_color='green')
 
 
-    plot_points(points, [rec])
+
+
+
+
+    
