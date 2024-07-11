@@ -298,6 +298,7 @@ def plot_points(points, rectangles, rec_color='gray'):
     plt.grid(True)
     plt.show()
 
+# Method to check if a point is inside a specific rectangle region
 def is_point_in_rectangle(point, rec):
     left, right, lower, upper = rec
 
@@ -306,6 +307,7 @@ def is_point_in_rectangle(point, rec):
     
     return False
 
+# Method to check if given two rectangles, the first is subrectangle of second
 def is_sub_rectangle(rec, target_rec):
     left1, right1, lower1, upper1 = rec
     left2, right2, lower2, upper2 = target_rec
@@ -315,6 +317,7 @@ def is_sub_rectangle(rec, target_rec):
     
     return False
 
+# Method to check if the intersection of two rectangles is empty or not
 def is_rectangles_intersection_non_empty(rec, target_rec):
     left1, right1, lower1, upper1 = rec
     left2, right2, lower2, upper2 = target_rec
