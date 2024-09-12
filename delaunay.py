@@ -46,8 +46,6 @@ class IncrementalDelaunay:
 
         return file_name
     
-    
-
 
 if __name__ == "__main__":
 

@@ -8,7 +8,6 @@ def incremental_lp_solver(c, A_ub, b_ub, d):
     res = linprog(c, A_ub=A_ub[:d+1], b_ub=b_ub[:d+1], bounds=[(0, None), (0, None)], method='highs')
     if not res.success:
         return None, None, False
-    
 
     x_star = res.x
     
